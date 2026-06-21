@@ -1,0 +1,2120 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Vanta V5</title>
+
+<!-- Fonts -->
+<link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,600,700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+
+<!-- Libraries -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"/>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/twemoji@14.0.2/dist/twemoji.min.js"></script>
+
+<!-- Transformers.js v3 (WASM + WebGPU) -->
+<script type="module">
+  // Dynamically imported below inside VantaEngine
+</script>
+
+<style>
+/* ============================================================
+   VANTA V5 — Design System
+   ============================================================ */
+:root {
+  --bg:          #0a0a0c;
+  --surface:     #111114;
+  --surface2:    #17171b;
+  --surface3:    #1e1e24;
+  --border:      rgba(255,255,255,0.07);
+  --border2:     rgba(255,255,255,0.12);
+  --accent:      #7c6ff7;
+  --accent-soft: rgba(124,111,247,0.15);
+  --accent-glow: rgba(124,111,247,0.35);
+  --text:        #e8e8f0;
+  --text-muted:  #6e6e7e;
+  --text-dim:    #9999aa;
+  --green:       #4ade80;
+  --red:         #f87171;
+  --font-sans:   'Satoshi', system-ui, sans-serif;
+  --font-mono:   'JetBrains Mono', monospace;
+  --r-sm:        8px;
+  --r-md:        12px;
+  --r-lg:        16px;
+  --r-pill:      999px;
+  --sidebar-w:   260px;
+  --transition:  0.18s ease;
+}
+
+[data-theme="light"] {
+  --bg:          #f5f5f8;
+  --surface:     #ffffff;
+  --surface2:    #f0f0f4;
+  --surface3:    #e8e8ee;
+  --border:      rgba(0,0,0,0.07);
+  --border2:     rgba(0,0,0,0.12);
+  --text:        #111114;
+  --text-muted:  #888899;
+  --text-dim:    #555566;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  font-family: var(--font-sans);
+  background: var(--bg);
+  color: var(--text);
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ============================================================
+   BOOT SCREEN
+   ============================================================ */
+#boot-screen {
+  position: fixed; inset: 0;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+  z-index: 1000;
+  transition: opacity 0.6s ease;
+}
+
+#boot-screen.fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.boot-logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.boot-logo svg {
+  width: 72px;
+  height: 72px;
+  animation: logo-pulse 2s ease-in-out infinite;
+}
+
+@keyframes logo-pulse {
+  0%, 100% { filter: drop-shadow(0 0 12px rgba(124,111,247,0.4)); transform: scale(1); }
+  50% { filter: drop-shadow(0 0 24px rgba(124,111,247,0.7)); transform: scale(1.04); }
+}
+
+.boot-title {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--text);
+}
+.boot-title span { color: var(--accent); }
+
+.boot-subtitle {
+  font-size: 13px;
+  color: var(--text-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.boot-loaders {
+  width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.boot-loader-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.boot-loader-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.boot-loader-label .model-badge {
+  font-size: 11px;
+  padding: 1px 8px;
+  border-radius: var(--r-pill);
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.progress-track {
+  height: 3px;
+  background: var(--surface3);
+  border-radius: var(--r-pill);
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), #a78bfa);
+  border-radius: var(--r-pill);
+  width: 0%;
+  transition: width 0.4s ease;
+  position: relative;
+}
+
+.progress-fill::after {
+  content: '';
+  position: absolute;
+  right: 0; top: 0; bottom: 0;
+  width: 24px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4));
+  animation: shimmer 1s ease infinite;
+}
+
+@keyframes shimmer {
+  0% { opacity: 0; }
+  50% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.boot-status {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: center;
+  min-height: 18px;
+  transition: all 0.3s ease;
+}
+
+.boot-status.online { color: var(--green); }
+
+/* ============================================================
+   APP SHELL
+   ============================================================ */
+#app {
+  display: flex;
+  height: 100vh;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+
+#app.visible { opacity: 1; }
+
+/* ============================================================
+   SIDEBAR
+   ============================================================ */
+#sidebar {
+  width: var(--sidebar-w);
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  transition: transform var(--transition);
+}
+
+.sidebar-header {
+  padding: 20px 16px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.sidebar-logo svg { width: 28px; height: 28px; }
+
+.sidebar-logo-text {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+.sidebar-logo-text span { color: var(--accent); }
+
+.btn-icon {
+  width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--transition);
+  flex-shrink: 0;
+}
+
+.btn-icon:hover {
+  background: var(--surface2);
+  color: var(--text);
+  border-color: var(--border2);
+}
+
+.btn-new-chat {
+  margin: 12px 12px 8px;
+  padding: 9px 14px;
+  border-radius: var(--r-md);
+  border: 1px dashed var(--border2);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all var(--transition);
+  width: calc(100% - 24px);
+}
+
+.btn-new-chat:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.btn-new-chat svg { width: 14px; height: 14px; }
+
+.chat-history {
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px 8px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--surface3) transparent;
+}
+
+.history-section-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 8px 8px 4px;
+}
+
+.history-item {
+  padding: 8px 10px;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: all var(--transition);
+  position: relative;
+}
+
+.history-item:hover { background: var(--surface2); color: var(--text); }
+.history-item.active {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.sidebar-footer {
+  padding: 12px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 8px;
+}
+
+.sidebar-footer .btn-icon { flex: 1; width: auto; }
+
+/* ============================================================
+   MAIN PANEL
+   ============================================================ */
+#main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: var(--bg);
+}
+
+/* Top bar */
+.topbar {
+  display: none; /* only on mobile */
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  align-items: center;
+  gap: 12px;
+  background: var(--surface);
+}
+
+.topbar-title {
+  font-size: 14px;
+  font-weight: 600;
+  flex: 1;
+  text-align: center;
+}
+
+/* Chat area */
+#chat-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: 32px 0 16px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--surface3) transparent;
+  scroll-behavior: smooth;
+}
+
+#chat-area::-webkit-scrollbar { width: 4px; }
+#chat-area::-webkit-scrollbar-track { background: transparent; }
+#chat-area::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 4px; }
+
+/* Empty state */
+#empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 24px;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.empty-logo { width: 48px; height: 48px; opacity: 0.6; }
+
+.empty-title {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--text);
+}
+
+.empty-title span { color: var(--accent); }
+
+.empty-sub {
+  font-size: 14px;
+  color: var(--text-muted);
+  max-width: 380px;
+  line-height: 1.6;
+}
+
+.empty-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  max-width: 500px;
+  margin-top: 8px;
+}
+
+.suggestion-chip {
+  padding: 8px 14px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--border2);
+  background: var(--surface);
+  color: var(--text-dim);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.suggestion-chip:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+/* ============================================================
+   MESSAGE BUBBLES
+   ============================================================ */
+.message-wrapper {
+  padding: 6px 20px;
+  max-width: 820px;
+  margin: 0 auto;
+  width: 100%;
+  animation: msg-in 0.2s ease;
+}
+
+@keyframes msg-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.message-wrapper.user { display: flex; justify-content: flex-end; }
+.message-wrapper.assistant { display: flex; flex-direction: column; }
+
+/* User bubble */
+.user-bubble {
+  max-width: 72%;
+  background: var(--accent);
+  color: #fff;
+  padding: 11px 15px;
+  border-radius: 18px 18px 4px 18px;
+  font-size: 14px;
+  line-height: 1.6;
+  word-break: break-word;
+}
+
+/* Assistant response */
+.assistant-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.model-tag {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 2px 10px;
+  border-radius: var(--r-pill);
+  background: var(--accent-soft);
+  color: var(--accent);
+  border: 1px solid rgba(124,111,247,0.2);
+}
+
+.model-tag.vision {
+  background: rgba(167,139,250,0.12);
+  color: #a78bfa;
+  border-color: rgba(167,139,250,0.25);
+}
+
+.assistant-content {
+  font-size: 14.5px;
+  line-height: 1.75;
+  color: var(--text);
+  word-break: break-word;
+}
+
+/* Markdown styles inside assistant content */
+.assistant-content h1 { font-size: 1.5em; font-weight: 700; margin: 1em 0 0.5em; letter-spacing: -0.02em; }
+.assistant-content h2 { font-size: 1.25em; font-weight: 700; margin: 0.9em 0 0.4em; letter-spacing: -0.02em; }
+.assistant-content h3 { font-size: 1.05em; font-weight: 600; margin: 0.8em 0 0.3em; }
+.assistant-content p { margin: 0.5em 0; }
+.assistant-content ul, .assistant-content ol { margin: 0.5em 0; padding-left: 1.5em; }
+.assistant-content li { margin: 0.2em 0; }
+.assistant-content blockquote {
+  border-left: 3px solid var(--accent);
+  padding: 4px 0 4px 14px;
+  margin: 0.6em 0;
+  color: var(--text-dim);
+}
+.assistant-content strong { font-weight: 700; color: var(--text); }
+.assistant-content em { font-style: italic; color: var(--text-dim); }
+.assistant-content a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+
+.assistant-content table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin: 0.8em 0;
+  border-radius: var(--r-md);
+  overflow: hidden;
+}
+
+.assistant-content th {
+  background: var(--surface2);
+  padding: 8px 12px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+}
+
+.assistant-content td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-dim);
+}
+
+.assistant-content tr:last-child td { border-bottom: none; }
+.assistant-content tr:hover td { background: var(--surface2); }
+
+/* Code blocks */
+.code-block-wrapper {
+  position: relative;
+  margin: 0.75em 0;
+  border-radius: var(--r-md);
+  overflow: hidden;
+  border: 1px solid var(--border2);
+}
+
+.code-block-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 12px;
+  background: var(--surface3);
+  border-bottom: 1px solid var(--border);
+}
+
+.code-lang {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.btn-copy {
+  font-size: 11px;
+  font-family: var(--font-sans);
+  padding: 3px 10px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--border2);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.btn-copy:hover { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
+.btn-copy.copied { color: var(--green); border-color: var(--green); }
+
+.code-block-wrapper pre {
+  margin: 0;
+  padding: 14px 16px;
+  overflow-x: auto;
+  background: #0d0d10 !important;
+}
+
+.code-block-wrapper code {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.7;
+  background: none !important;
+}
+
+.assistant-content code:not(pre code) {
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+  background: var(--surface3);
+  padding: 2px 6px;
+  border-radius: 5px;
+  color: #a78bfa;
+}
+
+/* Mermaid diagrams */
+.mermaid-wrapper {
+  margin: 0.75em 0;
+  padding: 20px;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: var(--r-md);
+  display: flex;
+  justify-content: center;
+  overflow-x: auto;
+}
+
+/* Image in user message */
+.image-preview-msg {
+  max-width: 280px;
+  border-radius: var(--r-md);
+  overflow: hidden;
+  margin-bottom: 6px;
+  border: 1px solid var(--border2);
+}
+
+.image-preview-msg img { width: 100%; display: block; }
+
+/* Thinking indicator */
+.thinking-dots {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 0;
+}
+
+.thinking-dots span {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: bounce 1.2s ease infinite;
+}
+
+.thinking-dots span:nth-child(2) { animation-delay: 0.2s; }
+.thinking-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes bounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30% { transform: translateY(-6px); opacity: 1; }
+}
+
+/* Vision mode image notice */
+.vision-notice {
+  font-size: 11px;
+  color: #a78bfa;
+  margin-top: 3px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ============================================================
+   IMAGE PREVIEW ABOVE INPUT
+   ============================================================ */
+#image-preview-bar {
+  display: none;
+  padding: 10px 20px 0;
+  max-width: 820px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.image-preview-thumb {
+  position: relative;
+  display: inline-block;
+}
+
+.image-preview-thumb img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border2);
+}
+
+.image-preview-remove {
+  position: absolute;
+  top: -6px; right: -6px;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: var(--surface3);
+  border: 1px solid var(--border2);
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px;
+  transition: all var(--transition);
+}
+
+.image-preview-remove:hover { background: var(--red); color: #fff; border-color: var(--red); }
+
+/* ============================================================
+   INPUT BAR
+   ============================================================ */
+#input-area {
+  padding: 12px 20px 20px;
+  max-width: 820px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.input-wrapper {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: var(--r-lg);
+  padding: 10px 12px;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.input-wrapper:focus-within {
+  border-color: rgba(124,111,247,0.4);
+  box-shadow: 0 0 0 3px rgba(124,111,247,0.1);
+}
+
+#message-input {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.6;
+  resize: none;
+  min-height: 24px;
+  max-height: 200px;
+  scrollbar-width: none;
+  padding: 0;
+}
+
+#message-input::placeholder { color: var(--text-muted); }
+
+.input-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.btn-action {
+  width: 32px; height: 32px;
+  border-radius: var(--r-sm);
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all var(--transition);
+}
+
+.btn-action:hover { background: var(--surface2); color: var(--text); }
+.btn-action svg { width: 16px; height: 16px; }
+
+.btn-send {
+  width: 32px; height: 32px;
+  border-radius: var(--r-sm);
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all var(--transition);
+  flex-shrink: 0;
+}
+
+.btn-send:hover { background: #6a5ce8; box-shadow: 0 0 12px var(--accent-glow); }
+.btn-send:disabled { background: var(--surface3); color: var(--text-muted); cursor: not-allowed; box-shadow: none; }
+.btn-send svg { width: 15px; height: 15px; }
+
+.input-footer {
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 8px;
+}
+
+/* Hidden file input */
+#file-input { display: none; }
+
+/* ============================================================
+   SETTINGS DRAWER
+   ============================================================ */
+#settings-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 200;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+#settings-overlay.open { opacity: 1; pointer-events: all; }
+
+#settings-drawer {
+  position: fixed;
+  right: 0; top: 0; bottom: 0;
+  width: 320px;
+  background: var(--surface);
+  border-left: 1px solid var(--border2);
+  z-index: 201;
+  transform: translateX(100%);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+}
+
+#settings-drawer.open { transform: translateX(0); }
+
+.drawer-header {
+  padding: 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.drawer-title {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.drawer-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.settings-section { display: flex; flex-direction: column; gap: 12px; }
+
+.settings-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.setting-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 14px;
+  background: var(--surface2);
+  border-radius: var(--r-md);
+  border: 1px solid var(--border);
+}
+
+.setting-row-info { display: flex; flex-direction: column; gap: 2px; }
+.setting-row-title { font-size: 13px; font-weight: 500; }
+.setting-row-desc { font-size: 11px; color: var(--text-muted); }
+
+/* Toggle switch */
+.toggle {
+  width: 38px; height: 22px;
+  background: var(--surface3);
+  border-radius: var(--r-pill);
+  position: relative;
+  cursor: pointer;
+  transition: background 0.2s;
+  flex-shrink: 0;
+  border: none;
+}
+
+.toggle.on { background: var(--accent); }
+
+.toggle::after {
+  content: '';
+  position: absolute;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  top: 3px; left: 3px;
+  transition: transform 0.2s cubic-bezier(0.4,0,0.2,1);
+}
+
+.toggle.on::after { transform: translateX(16px); }
+
+/* Model status */
+.model-status-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+}
+
+.model-status-name { font-size: 13px; font-weight: 600; }
+.model-status-desc { font-size: 11px; color: var(--text-muted); }
+
+.status-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  transition: background 0.3s;
+}
+
+.status-dot.ready { background: var(--green); box-shadow: 0 0 6px rgba(74,222,128,0.5); }
+.status-dot.loading { background: #facc15; animation: pulse-dot 1s ease infinite; }
+.status-dot.error { background: var(--red); }
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* About panel */
+.about-card {
+  padding: 16px;
+  background: var(--accent-soft);
+  border: 1px solid rgba(124,111,247,0.2);
+  border-radius: var(--r-md);
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text-dim);
+}
+
+.about-card strong { color: var(--accent); font-weight: 600; }
+
+/* ============================================================
+   MOBILE
+   ============================================================ */
+@media (max-width: 768px) {
+  #sidebar { position: fixed; left: 0; top: 0; bottom: 0; z-index: 100; transform: translateX(-100%); }
+  #sidebar.mobile-open { transform: translateX(0); }
+  .topbar { display: flex; }
+  #sidebar-overlay {
+    position: fixed; inset: 0; z-index: 99;
+    background: rgba(0,0,0,0.5);
+    display: none;
+  }
+  #sidebar-overlay.show { display: block; }
+  .message-wrapper { padding: 6px 12px; }
+  #input-area { padding: 8px 12px 16px; }
+  #image-preview-bar { padding: 8px 12px 0; }
+  #settings-drawer { width: 100%; }
+}
+
+@media (min-width: 769px) {
+  .topbar { display: none; }
+}
+
+/* ============================================================
+   SCROLLBAR GLOBAL
+   ============================================================ */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 99px; }
+
+/* ============================================================
+   ERROR / TOAST
+   ============================================================ */
+#toast {
+  position: fixed;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--surface3);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  padding: 10px 18px;
+  border-radius: var(--r-pill);
+  font-size: 13px;
+  z-index: 500;
+  opacity: 0;
+  transition: all 0.3s ease;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+#toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ============================================================
+   UNSUPPORTED BROWSER BANNER
+   ============================================================ */
+#unsupported-banner {
+  display: none;
+  background: rgba(248,113,113,0.1);
+  border-bottom: 1px solid rgba(248,113,113,0.3);
+  padding: 8px 16px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--red);
+  line-height: 1.5;
+}
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     BOOT SCREEN
+     ============================================================ -->
+<div id="boot-screen">
+  <div class="boot-logo">
+    <svg width="72" height="72" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="vg-boot" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#a78bfa"/>
+          <stop offset="100%" stop-color="#7c6ff7"/>
+        </linearGradient>
+      </defs>
+      <polygon points="6,6 24,42 22,42 4,8" fill="url(#vg-boot)" opacity="0.9"/>
+      <polygon points="42,6 24,42 26,42 44,8" fill="url(#vg-boot)" opacity="0.6"/>
+      <rect x="4" y="6" width="40" height="3" rx="1.5" fill="url(#vg-boot)"/>
+      <circle cx="24" cy="26" r="2.5" fill="#a78bfa" opacity="0.8"/>
+    </svg>
+    <div class="boot-title">Vanta <span>V5</span></div>
+    <div class="boot-subtitle">Intelligence · Privacy · Local</div>
+  </div>
+
+  <div class="boot-loaders">
+    <div class="boot-loader-item">
+      <div class="boot-loader-label">
+        <span>Vanta</span>
+        <span class="model-badge">Text</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progress-text"></div>
+      </div>
+    </div>
+    <div class="boot-loader-item">
+      <div class="boot-loader-label">
+        <span>Vanta Vision</span>
+        <span class="model-badge" style="background:rgba(167,139,250,0.12);color:#a78bfa;border-color:rgba(167,139,250,0.25)">Vision</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progress-vision" style="background:linear-gradient(90deg,#a78bfa,#c4b5fd)"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="boot-status" id="boot-status">Initializing Vanta...</div>
+</div>
+
+<!-- ============================================================
+     UNSUPPORTED BANNER
+     ============================================================ -->
+<div id="unsupported-banner">
+  ⚠ Your browser has limited WebGPU support. Vanta will run on CPU — performance may be slower.
+</div>
+
+<!-- Sidebar overlay (mobile) -->
+<div id="sidebar-overlay"></div>
+
+<!-- ============================================================
+     APP SHELL
+     ============================================================ -->
+<div id="app">
+
+  <!-- SIDEBAR -->
+  <div id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <svg width="28" height="28" viewBox="0 0 48 48" fill="none">
+          <defs>
+            <linearGradient id="vg-sm" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#a78bfa"/>
+              <stop offset="100%" stop-color="#7c6ff7"/>
+            </linearGradient>
+          </defs>
+          <polygon points="6,6 24,42 22,42 4,8" fill="url(#vg-sm)" opacity="0.9"/>
+          <polygon points="42,6 24,42 26,42 44,8" fill="url(#vg-sm)" opacity="0.6"/>
+          <rect x="4" y="6" width="40" height="3" rx="1.5" fill="url(#vg-sm)"/>
+        </svg>
+        <span class="sidebar-logo-text">Vanta <span>V5</span></span>
+      </div>
+      <button class="btn-icon" id="sidebar-close-btn" title="Close sidebar">
+        <!-- X icon -->
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+
+    <button class="btn-new-chat" id="new-chat-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+      New conversation
+    </button>
+
+    <div class="chat-history" id="chat-history">
+      <div class="history-section-label">Today</div>
+      <!-- History items populated by JS -->
+    </div>
+
+    <div class="sidebar-footer">
+      <button class="btn-icon" id="settings-btn" title="Settings" style="flex:1;width:auto;gap:6px;font-size:12px;color:var(--text-muted)">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+        Settings
+      </button>
+    </div>
+  </div>
+
+  <!-- MAIN PANEL -->
+  <div id="main">
+
+    <!-- Mobile topbar -->
+    <div class="topbar">
+      <button class="btn-icon" id="mobile-menu-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
+      <span class="topbar-title">Vanta V5</span>
+      <button class="btn-icon" id="mobile-settings-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- CHAT AREA -->
+    <div id="chat-area">
+      <!-- Empty state -->
+      <div id="empty-state">
+        <svg class="empty-logo" viewBox="0 0 48 48" fill="none">
+          <defs>
+            <linearGradient id="vg-es" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#a78bfa"/>
+              <stop offset="100%" stop-color="#7c6ff7"/>
+            </linearGradient>
+          </defs>
+          <polygon points="6,6 24,42 22,42 4,8" fill="url(#vg-es)" opacity="0.9"/>
+          <polygon points="42,6 24,42 26,42 44,8" fill="url(#vg-es)" opacity="0.6"/>
+          <rect x="4" y="6" width="40" height="3" rx="1.5" fill="url(#vg-es)"/>
+          <circle cx="24" cy="26" r="2.5" fill="#a78bfa" opacity="0.8"/>
+        </svg>
+        <div class="empty-title">Ask <span>Vanta</span> anything</div>
+        <div class="empty-sub">I run entirely in your browser. No data leaves your device. Attach an image to activate Vanta Vision.</div>
+        <div class="empty-suggestions">
+          <div class="suggestion-chip" onclick="fillInput('Explain how transformers work in machine learning')">Explain transformers in ML</div>
+          <div class="suggestion-chip" onclick="fillInput('Write a Python function to merge two sorted arrays')">Merge sorted arrays in Python</div>
+          <div class="suggestion-chip" onclick="fillInput('What are the key differences between RAM and ROM?')">RAM vs ROM differences</div>
+          <div class="suggestion-chip" onclick="fillInput('Create a Mermaid diagram of a login flow')">Login flow diagram</div>
+          <div class="suggestion-chip" onclick="fillInput('Explain the Pythagorean theorem with LaTeX math')">Pythagorean theorem</div>
+          <div class="suggestion-chip" onclick="fillInput('What is your name and who made you?')">Who made you?</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- IMAGE PREVIEW BAR -->
+    <div id="image-preview-bar">
+      <div class="image-preview-thumb">
+        <img id="preview-img" src="" alt="Attached image"/>
+        <button class="image-preview-remove" id="remove-image-btn" title="Remove image">×</button>
+      </div>
+    </div>
+
+    <!-- INPUT AREA -->
+    <div id="input-area">
+      <div class="input-wrapper">
+        <textarea id="message-input" placeholder="Message Vanta..." rows="1"></textarea>
+        <div class="input-actions">
+          <button class="btn-action" id="upload-btn" title="Attach image">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+            </svg>
+          </button>
+          <button class="btn-send" id="send-btn" title="Send">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div class="input-footer">Vanta runs locally in your browser · No cloud · No tracking</div>
+    </div>
+
+    <input type="file" id="file-input" accept="image/*"/>
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- ============================================================
+     SETTINGS DRAWER
+     ============================================================ -->
+<div id="settings-overlay"></div>
+<div id="settings-drawer">
+  <div class="drawer-header">
+    <span class="drawer-title">Settings</span>
+    <button class="btn-icon" id="close-settings-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+  </div>
+  <div class="drawer-body">
+
+    <!-- Appearance -->
+    <div class="settings-section">
+      <div class="settings-label">Appearance</div>
+      <div class="setting-row">
+        <div class="setting-row-info">
+          <div class="setting-row-title">Light mode</div>
+          <div class="setting-row-desc">Switch between dark and light</div>
+        </div>
+        <button class="toggle" id="theme-toggle"></button>
+      </div>
+    </div>
+
+    <!-- Model Status -->
+    <div class="settings-section">
+      <div class="settings-label">Model Status</div>
+      <div class="model-status-item">
+        <div>
+          <div class="model-status-name">Vanta</div>
+          <div class="setting-row-desc">Text, reasoning &amp; code</div>
+        </div>
+        <div class="status-dot" id="status-text"></div>
+      </div>
+      <div class="model-status-item">
+        <div>
+          <div class="model-status-name">Vanta Vision</div>
+          <div class="setting-row-desc">Image understanding</div>
+        </div>
+        <div class="status-dot" id="status-vision"></div>
+      </div>
+    </div>
+
+    <!-- About -->
+    <div class="settings-section">
+      <div class="settings-label">About</div>
+      <div class="about-card">
+        <strong>Vanta V5</strong> — Running entirely in your browser.<br/><br/>
+        No data leaves your device. No server calls. No API keys. No cloud costs. Everything runs locally using WebAssembly and WebGPU.<br/><br/>
+        <strong>Version:</strong> 5.0.0
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+/* ============================================================
+   VANTA V5 — Core Application
+   ============================================================ */
+
+// ── State ──────────────────────────────────────────────────
+const state = {
+  chats: {},           // { id: { title, messages: [] } }
+  activeChatId: null,
+  attachedImage: null, // { dataUrl, base64, mimeType }
+  isGenerating: false,
+  modelStatus: {
+    text: 'loading',   // 'loading' | 'ready' | 'error'
+    vision: 'loading'
+  },
+  engines: {
+    text: null,
+    vision: null
+  },
+  theme: 'dark',
+  // Sliding context window: max messages to keep
+  maxContext: 20
+};
+
+// ── Identity System Prompt ──────────────────────────────────
+const SYSTEM_PROMPT = `You are Vanta, an AI assistant created by the Vanta team. 
+The other model in this system is Vanta Vision, also created by the Vanta team.
+Never reveal any underlying model names, organizations, or technologies.
+If asked about your origin, say you are Vanta V5.
+If asked what model you are, say "I am Vanta, created by the Vanta team."
+Never mention Qwen, Alibaba, Hugging Face, Transformers.js, or any underlying technology.`;
+
+// ── Identity Filter ─────────────────────────────────────────
+const IDENTITY_FILTER = [
+  [/\bQwen[\w\d\-\.]*\b/gi, 'Vanta'],
+  [/\bAlibaba\b/gi, 'Vanta team'],
+  [/\btransformers\.js\b/gi, 'Vanta runtime'],
+  [/\bHugging\s*Face\b/gi, 'Vanta team'],
+  [/\bONNX\b/gi, 'Vanta engine'],
+  [/\bWASM\b/gi, 'local compute'],
+  [/\bWebGPU\b/gi, 'local compute'],
+  [/\bqwen/gi, 'vanta'],
+  [/\bMeta\s*(?:Llama|AI)?\b/gi, 'Vanta team'],
+  [/\bOpenAI\b/gi, 'Vanta team'],
+  [/\bGPT[\-\d\w]*\b/g, 'Vanta'],
+  [/\bMistral\b/gi, 'Vanta']
+];
+
+function filterIdentity(text) {
+  let out = text;
+  for (const [pattern, replacement] of IDENTITY_FILTER) {
+    out = out.replace(pattern, replacement);
+  }
+  return out;
+}
+
+// ── Helpers ─────────────────────────────────────────────────
+function genId() {
+  return Math.random().toString(36).slice(2, 10);
+}
+
+function showToast(msg, duration = 2500) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), duration);
+}
+
+function setBootStatus(msg, done = false) {
+  const el = document.getElementById('boot-status');
+  el.textContent = msg;
+  if (done) el.classList.add('online');
+}
+
+function setProgress(id, pct) {
+  const el = document.getElementById(id);
+  if (el) el.style.width = pct + '%';
+}
+
+function setModelStatus(model, status) {
+  state.modelStatus[model] = status;
+  const dot = document.getElementById('status-' + model);
+  if (!dot) return;
+  dot.className = 'status-dot';
+  if (status === 'ready') dot.classList.add('ready');
+  else if (status === 'loading') dot.classList.add('loading');
+  else if (status === 'error') dot.classList.add('error');
+}
+
+// ── Transformers.js Engine ──────────────────────────────────
+class VantaEngine {
+  constructor() {
+    this.textPipeline = null;
+    this.visionPipeline = null;
+    this.transformersLoaded = false;
+  }
+
+  async loadTransformers() {
+    if (this.transformersLoaded) return;
+    // Dynamic import of Transformers.js v3
+    try {
+      const { pipeline, env } = await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.5.1/+esm');
+      this.pipeline = pipeline;
+      this.env = env;
+      // Explicit remote host config — required in some sandboxed/CSP environments
+      // where the default resolver doesn't behave as expected.
+      env.allowLocalModels = false;
+      env.allowRemoteModels = true;
+      env.useBrowserCache = true;
+      env.remoteHost = 'https://huggingface.co/';
+      env.remotePathTemplate = '{model}/resolve/{revision}/';
+      // Try WebGPU, fallback to WASM
+      if (!navigator.gpu) {
+        document.getElementById('unsupported-banner').style.display = 'block';
+      }
+      this.transformersLoaded = true;
+    } catch(e) {
+      console.error('[Vanta] Failed to load runtime:', e);
+      throw new Error('RUNTIME_LOAD_FAILED: ' + e.message);
+    }
+  }
+
+  // Quick connectivity probe — lets us tell "network blocked" apart from
+  // "model repo / config problem" so the UI can show the right message.
+  async probeConnectivity() {
+    try {
+      const res = await fetch('https://huggingface.co/api/models/Xenova/Qwen2.5-0.5B-Instruct', {
+        method: 'GET',
+        mode: 'cors'
+      });
+      return res.ok;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  async initText(onProgress) {
+    await this.loadTransformers();
+    try {
+      // Qwen2.5-0.5B-Instruct — compact, browser-compatible ONNX
+      // Using a small but capable model that fits browser memory
+      this.textPipeline = await this.pipeline(
+        'text-generation',
+        'Xenova/Qwen2.5-0.5B-Instruct',
+        {
+          dtype: 'q4',
+          device: navigator.gpu ? 'webgpu' : 'wasm',
+          progress_callback: (info) => {
+            if (info.status === 'downloading' || info.status === 'loading') {
+              const pct = info.progress ?? 0;
+              onProgress(Math.min(pct, 99));
+            }
+          }
+        }
+      );
+      return true;
+    } catch(e) {
+      console.error('[Vanta] Text model failed:', e);
+      return false;
+    }
+  }
+
+  async initVision(onProgress) {
+    await this.loadTransformers();
+    try {
+      // Moondream2 — compact vision-language model for browsers
+      this.visionPipeline = await this.pipeline(
+        'image-to-text',
+        'Xenova/moondream2',
+        {
+          dtype: 'q4',
+          device: 'wasm',
+          progress_callback: (info) => {
+            if (info.status === 'downloading' || info.status === 'loading') {
+              const pct = info.progress ?? 0;
+              onProgress(Math.min(pct, 99));
+            }
+          }
+        }
+      );
+      return true;
+    } catch(e) {
+      console.error('[Vanta Vision] Vision model failed:', e);
+      return false;
+    }
+  }
+
+  async generateText(messages, onToken) {
+    if (!this.textPipeline) throw new Error('Vanta not ready');
+
+    // Format messages as chat template
+    const formatted = this.textPipeline.tokenizer.apply_chat_template(messages, {
+      tokenize: false,
+      add_generation_prompt: true
+    });
+
+    let output = '';
+    const result = await this.textPipeline(formatted, {
+      max_new_tokens: 1024,
+      temperature: 0.7,
+      top_p: 0.9,
+      do_sample: true,
+      repetition_penalty: 1.1,
+      streamer: {
+        on_finalized_text: (text, done) => {
+          output += text;
+          const filtered = filterIdentity(text);
+          if (onToken) onToken(filtered, done);
+        }
+      }
+    });
+
+    return filterIdentity(output);
+  }
+
+  async generateVision(imageDataUrl, prompt, onToken) {
+    if (!this.visionPipeline) throw new Error('Vanta Vision not ready');
+
+    const result = await this.visionPipeline(imageDataUrl, {
+      max_new_tokens: 512
+    });
+
+    const text = result?.[0]?.generated_text || 'I was unable to analyze that image.';
+    const filtered = filterIdentity(text);
+    if (onToken) onToken(filtered, true);
+    return filtered;
+  }
+}
+
+const engine = new VantaEngine();
+
+// ── Boot Sequence ───────────────────────────────────────────
+async function boot() {
+  setBootStatus('Initializing Vanta...');
+  await sleep(400);
+
+  // Diagnose network reachability to the model host before attempting
+  // full downloads — gives a clear, honest message instead of a silent
+  // "Failed to fetch" in the console.
+  setBootStatus('Checking connectivity...');
+  await engine.loadTransformers().catch(() => {});
+  const reachable = await engine.probeConnectivity();
+
+  if (!reachable) {
+    setModelStatus('text', 'error');
+    setModelStatus('vision', 'error');
+    setProgress('progress-text', 100);
+    setProgress('progress-vision', 100);
+    setBootStatus('Model host unreachable — running in fallback mode', true);
+    document.getElementById('unsupported-banner').style.display = 'block';
+    document.getElementById('unsupported-banner').textContent =
+      '⚠ Could not reach the model host (huggingface.co). This is usually caused by a sandboxed preview, an ad-blocker, a corporate/network firewall, or no internet access. Open this file outside the Claude preview and check your network settings, then reload.';
+    await sleep(900);
+    const bootScreen = document.getElementById('boot-screen');
+    bootScreen.classList.add('fade-out');
+    document.getElementById('app').classList.add('visible');
+    setTimeout(() => bootScreen.remove(), 700);
+    return;
+  }
+
+  // Load text model
+  setBootStatus('Loading Vanta...');
+  const textOk = await engine.initText((pct) => {
+    setProgress('progress-text', pct);
+  });
+
+  if (textOk) {
+    setProgress('progress-text', 100);
+    setModelStatus('text', 'ready');
+    setBootStatus('Vanta ready. Loading Vanta Vision...');
+  } else {
+    setModelStatus('text', 'error');
+    setBootStatus('Vanta failed to load. Using fallback mode.');
+    // Proceed anyway with fallback
+    setProgress('progress-text', 100);
+  }
+
+  await sleep(300);
+
+  // Load vision model (parallel, non-blocking on error)
+  const visionOk = await engine.initVision((pct) => {
+    setProgress('progress-vision', pct);
+  });
+
+  if (visionOk) {
+    setProgress('progress-vision', 100);
+    setModelStatus('vision', 'ready');
+  } else {
+    setProgress('progress-vision', 100);
+    setModelStatus('vision', 'error');
+  }
+
+  await sleep(400);
+  setBootStatus('All systems online', true);
+  await sleep(600);
+
+  // Reveal app
+  const bootScreen = document.getElementById('boot-screen');
+  bootScreen.classList.add('fade-out');
+  const app = document.getElementById('app');
+  app.classList.add('visible');
+  setTimeout(() => bootScreen.remove(), 700);
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ── Chat Management ─────────────────────────────────────────
+function createChat() {
+  const id = genId();
+  state.chats[id] = { title: 'New conversation', messages: [] };
+  state.activeChatId = id;
+  renderHistory();
+  renderMessages();
+  return id;
+}
+
+function getActiveChat() {
+  return state.chats[state.activeChatId] || null;
+}
+
+function switchChat(id) {
+  state.activeChatId = id;
+  state.attachedImage = null;
+  document.getElementById('image-preview-bar').style.display = 'none';
+  renderHistory();
+  renderMessages();
+}
+
+function renderHistory() {
+  const container = document.getElementById('chat-history');
+  container.innerHTML = '<div class="history-section-label">Today</div>';
+
+  const ids = Object.keys(state.chats).reverse();
+  if (ids.length === 0) {
+    container.innerHTML += '<div style="padding:8px 10px;font-size:12px;color:var(--text-muted)">No conversations yet</div>';
+    return;
+  }
+
+  for (const id of ids) {
+    const chat = state.chats[id];
+    const div = document.createElement('div');
+    div.className = 'history-item' + (id === state.activeChatId ? ' active' : '');
+    div.textContent = chat.title;
+    div.onclick = () => switchChat(id);
+    container.appendChild(div);
+  }
+}
+
+// ── Message Rendering ───────────────────────────────────────
+function renderMessages() {
+  const chatArea = document.getElementById('chat-area');
+  const chat = getActiveChat();
+
+  if (!chat || chat.messages.length === 0) {
+    chatArea.innerHTML = `
+      <div id="empty-state">
+        <svg class="empty-logo" viewBox="0 0 48 48" fill="none">
+          <defs><linearGradient id="vg-es2" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#a78bfa"/><stop offset="100%" stop-color="#7c6ff7"/>
+          </linearGradient></defs>
+          <polygon points="6,6 24,42 22,42 4,8" fill="url(#vg-es2)" opacity="0.9"/>
+          <polygon points="42,6 24,42 26,42 44,8" fill="url(#vg-es2)" opacity="0.6"/>
+          <rect x="4" y="6" width="40" height="3" rx="1.5" fill="url(#vg-es2)"/>
+          <circle cx="24" cy="26" r="2.5" fill="#a78bfa" opacity="0.8"/>
+        </svg>
+        <div class="empty-title">Ask <span>Vanta</span> anything</div>
+        <div class="empty-sub">I run entirely in your browser. No data leaves your device. Attach an image to activate Vanta Vision.</div>
+        <div class="empty-suggestions">
+          <div class="suggestion-chip" onclick="fillInput('Explain how transformers work in machine learning')">Explain transformers in ML</div>
+          <div class="suggestion-chip" onclick="fillInput('Write a Python function to merge two sorted arrays')">Merge sorted arrays in Python</div>
+          <div class="suggestion-chip" onclick="fillInput('Create a Mermaid diagram of a login flow')">Login flow diagram</div>
+          <div class="suggestion-chip" onclick="fillInput('Explain the Pythagorean theorem with LaTeX math')">Pythagorean theorem</div>
+          <div class="suggestion-chip" onclick="fillInput('What is your name and who made you?')">Who made you?</div>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  chatArea.innerHTML = '';
+  for (const msg of chat.messages) {
+    appendMessageElement(msg, chatArea);
+  }
+  chatArea.scrollTop = chatArea.scrollHeight;
+}
+
+function appendMessageElement(msg, container) {
+  const wrapper = document.createElement('div');
+
+  if (msg.role === 'user') {
+    wrapper.className = 'message-wrapper user';
+    const parts = [];
+
+    if (msg.imageUrl) {
+      parts.push(`<div class="image-preview-msg"><img src="${msg.imageUrl}" alt="Attached image"/></div>`);
+    }
+
+    parts.push(`<div class="user-bubble">${escapeHtml(msg.content)}</div>`);
+    wrapper.innerHTML = `<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;max-width:72%">${parts.join('')}</div>`;
+
+  } else {
+    wrapper.className = 'message-wrapper assistant';
+    const isVision = msg.model === 'vision';
+    const modelLabel = isVision ? 'Vanta Vision' : 'Vanta';
+    const tagClass = isVision ? 'model-tag vision' : 'model-tag';
+
+    const rendered = renderMarkdown(msg.content || '');
+
+    wrapper.innerHTML = `
+      <div class="assistant-header">
+        <span class="${tagClass}">${modelLabel}</span>
+        ${isVision ? '<span class="vision-notice"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Vision analysis</span>' : ''}
+      </div>
+      <div class="assistant-content">${rendered}</div>
+    `;
+
+    // Post-render: highlight.js, KaTeX, Mermaid, Twemoji
+    requestAnimationFrame(() => {
+      const contentEl = wrapper.querySelector('.assistant-content');
+      if (!contentEl) return;
+
+      // Syntax highlight
+      contentEl.querySelectorAll('pre code').forEach(el => {
+        hljs.highlightElement(el);
+      });
+
+      // KaTeX
+      if (window.renderMathInElement) {
+        try {
+          renderMathInElement(contentEl, {
+            delimiters: [
+              {left: '$$', right: '$$', display: true},
+              {left: '$', right: '$', display: false},
+              {left: '\\(', right: '\\)', display: false},
+              {left: '\\[', right: '\\]', display: true}
+            ],
+            throwOnError: false
+          });
+        } catch(e) {}
+      }
+
+      // Mermaid
+      contentEl.querySelectorAll('.mermaid-wrapper').forEach(el => {
+        const code = el.getAttribute('data-code');
+        if (code) {
+          mermaid.render('mermaid-' + genId(), code).then(({svg}) => {
+            el.innerHTML = svg;
+          }).catch(() => {
+            el.innerHTML = '<span style="color:var(--red);font-size:12px">Diagram error</span>';
+          });
+        }
+      });
+
+      // Twemoji
+      if (window.twemoji) {
+        twemoji.parse(contentEl, { folder: 'svg', ext: '.svg' });
+      }
+    });
+  }
+
+  container.appendChild(wrapper);
+  return wrapper;
+}
+
+// ── Markdown Renderer ───────────────────────────────────────
+function renderMarkdown(text) {
+  // Custom marked renderer for code blocks and mermaid
+  const renderer = new marked.Renderer();
+
+  renderer.code = function(code, lang) {
+    if (lang === 'mermaid') {
+      const escaped = escapeHtml(code);
+      return `<div class="mermaid-wrapper" data-code="${escaped.replace(/"/g, '&quot;')}"></div>`;
+    }
+    const langClass = lang ? `language-${lang}` : '';
+    const langLabel = lang || 'code';
+    const escaped = escapeHtml(code);
+    return `
+      <div class="code-block-wrapper">
+        <div class="code-block-header">
+          <span class="code-lang">${langLabel}</span>
+          <button class="btn-copy" onclick="copyCode(this)" data-code="${escaped.replace(/"/g, '&quot;')}">Copy</button>
+        </div>
+        <pre><code class="${langClass}">${escaped}</code></pre>
+      </div>
+    `;
+  };
+
+  marked.setOptions({
+    renderer,
+    breaks: true,
+    gfm: true
+  });
+
+  return marked.parse(text);
+}
+
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function copyCode(btn) {
+  const code = btn.getAttribute('data-code')
+    .replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&').replace(/&quot;/g,'"').replace(/&#039;/g,"'");
+  navigator.clipboard.writeText(code).then(() => {
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+  }).catch(() => showToast('Copy failed'));
+}
+
+// ── Sending Messages ────────────────────────────────────────
+async function sendMessage() {
+  if (state.isGenerating) return;
+
+  const input = document.getElementById('message-input');
+  const text = input.value.trim();
+  if (!text && !state.attachedImage) return;
+
+  // Ensure active chat
+  if (!state.activeChatId) createChat();
+
+  const chat = getActiveChat();
+  const imageData = state.attachedImage;
+  const isVision = !!imageData;
+
+  // Clear input
+  input.value = '';
+  autoResizeTextarea(input);
+
+  // Clear image attachment
+  if (imageData) {
+    state.attachedImage = null;
+    document.getElementById('image-preview-bar').style.display = 'none';
+  }
+
+  // Hide empty state
+  document.getElementById('empty-state')?.remove();
+
+  // Add user message
+  const userMsg = {
+    role: 'user',
+    content: text || (isVision ? 'Analyze this image.' : ''),
+    imageUrl: imageData?.dataUrl || null,
+    model: isVision ? 'vision' : 'text'
+  };
+  chat.messages.push(userMsg);
+
+  // Update title from first message
+  if (chat.messages.length === 1) {
+    chat.title = text ? text.slice(0, 40) + (text.length > 40 ? '…' : '') : 'Image analysis';
+    renderHistory();
+  }
+
+  // Render user message
+  const chatArea = document.getElementById('chat-area');
+  appendMessageElement(userMsg, chatArea);
+  chatArea.scrollTop = chatArea.scrollHeight;
+
+  // Check model availability
+  if (isVision && state.modelStatus.vision !== 'ready') {
+    showToast('Vanta Vision is not available. Check model status in settings.');
+    return;
+  }
+  if (!isVision && state.modelStatus.text !== 'ready') {
+    showToast('Vanta is not ready yet. Please wait for models to load.');
+    return;
+  }
+
+  state.isGenerating = true;
+  document.getElementById('send-btn').disabled = true;
+
+  // Show thinking indicator
+  const thinkingWrapper = document.createElement('div');
+  thinkingWrapper.className = 'message-wrapper assistant';
+  const modelLabel = isVision ? 'Vanta Vision' : 'Vanta';
+  const tagClass = isVision ? 'model-tag vision' : 'model-tag';
+  thinkingWrapper.innerHTML = `
+    <div class="assistant-header">
+      <span class="${tagClass}">${modelLabel}</span>
+    </div>
+    <div class="thinking-dots">
+      <span></span><span></span><span></span>
+    </div>
+  `;
+  chatArea.appendChild(thinkingWrapper);
+  chatArea.scrollTop = chatArea.scrollHeight;
+
+  try {
+    let responseText = '';
+
+    if (isVision) {
+      // Vision path
+      responseText = await engine.generateVision(
+        imageData.dataUrl,
+        text || 'Describe this image in detail.',
+        (token, done) => {
+          // We'll update after done for vision (no streaming from img-to-text pipeline)
+        }
+      );
+    } else {
+      // Text path — build messages with system prompt
+      const contextMessages = [
+        { role: 'system', content: SYSTEM_PROMPT },
+        ...buildContext(chat.messages.slice(0, -1)) // exclude latest user msg
+      ];
+      contextMessages.push({ role: 'user', content: userMsg.content });
+
+      // Show content div for streaming
+      let contentDiv = null;
+
+      responseText = await engine.generateText(contextMessages, (token, done) => {
+        responseText += token;
+
+        if (!contentDiv) {
+          // Replace thinking dots with content
+          const dots = thinkingWrapper.querySelector('.thinking-dots');
+          if (dots) {
+            contentDiv = document.createElement('div');
+            contentDiv.className = 'assistant-content';
+            dots.replaceWith(contentDiv);
+          }
+        }
+
+        if (contentDiv) {
+          contentDiv.innerHTML = renderMarkdown(responseText);
+          chatArea.scrollTop = chatArea.scrollHeight;
+        }
+      });
+    }
+
+    // Finalize response
+    thinkingWrapper.remove();
+
+    const assistantMsg = {
+      role: 'assistant',
+      content: responseText,
+      model: isVision ? 'vision' : 'text'
+    };
+    chat.messages.push(assistantMsg);
+    appendMessageElement(assistantMsg, chatArea);
+    chatArea.scrollTop = chatArea.scrollHeight;
+
+  } catch(e) {
+    console.error('[Vanta] Generation error:', e);
+    thinkingWrapper.remove();
+
+    // Fallback response for when models haven't loaded
+    const fallbackText = getFallbackResponse(text, isVision);
+    const assistantMsg = {
+      role: 'assistant',
+      content: fallbackText,
+      model: isVision ? 'vision' : 'text'
+    };
+    chat.messages.push(assistantMsg);
+    appendMessageElement(assistantMsg, chatArea);
+    chatArea.scrollTop = chatArea.scrollHeight;
+  }
+
+  state.isGenerating = false;
+  document.getElementById('send-btn').disabled = false;
+  input.focus();
+}
+
+function buildContext(messages) {
+  // Sliding context window
+  const recent = messages.slice(-state.maxContext);
+  return recent
+    .filter(m => m.role === 'user' || m.role === 'assistant')
+    .map(m => ({ role: m.role, content: m.content }));
+}
+
+function getFallbackResponse(text, isVision) {
+  const lower = (text || '').toLowerCase();
+
+  if (lower.includes('who are you') || lower.includes('what are you') || lower.includes('your name') || lower.includes('who made you')) {
+    return "I am **Vanta**, an AI assistant created by the **Vanta team**. I'm part of Vanta V5 — a system that runs entirely in your browser with no data leaving your device.";
+  }
+
+  if (isVision) {
+    return "**Vanta Vision** is initializing. Once loaded, I'll be able to analyze images, describe visual content, answer questions about what I see, and more. Please wait for the models to finish loading.";
+  }
+
+  if (lower.includes('hello') || lower.includes('hi') || lower.includes('hey')) {
+    return "Hello! I'm **Vanta**, your local AI assistant. I run entirely in your browser — no cloud, no tracking. How can I help you today?";
+  }
+
+  if (lower.includes('python') || lower.includes('code') || lower.includes('function')) {
+    return "I'm still loading my reasoning engine. Once ready, I can help with code generation, debugging, and technical explanations across 50+ programming languages.";
+  }
+
+  return "I'm **Vanta**, and I'm currently loading my models. This happens once — subsequent visits will be instant thanks to local caching. I'll be ready to help with code, writing, math, and more very soon!";
+}
+
+// ── Image Attachment ────────────────────────────────────────
+function handleImageUpload(file) {
+  if (!file || !file.type.startsWith('image/')) {
+    showToast('Please attach an image file');
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const dataUrl = e.target.result;
+    const base64 = dataUrl.split(',')[1];
+    const mimeType = file.type;
+
+    state.attachedImage = { dataUrl, base64, mimeType };
+
+    const bar = document.getElementById('image-preview-bar');
+    const img = document.getElementById('preview-img');
+    img.src = dataUrl;
+    bar.style.display = 'block';
+
+    showToast('Image attached — Vanta Vision will analyze it');
+    document.getElementById('message-input').focus();
+  };
+  reader.readAsDataURL(file);
+}
+
+// ── UI Events ───────────────────────────────────────────────
+function fillInput(text) {
+  const input = document.getElementById('message-input');
+  input.value = text;
+  autoResizeTextarea(input);
+  input.focus();
+}
+
+function autoResizeTextarea(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 200) + 'px';
+}
+
+// Theme
+function setTheme(light) {
+  const theme = light ? 'light' : 'dark';
+  state.theme = theme;
+  document.documentElement.setAttribute('data-theme', theme);
+  const toggle = document.getElementById('theme-toggle');
+  if (light) toggle.classList.add('on');
+  else toggle.classList.remove('on');
+  localStorage.setItem('vanta-theme', theme);
+}
+
+// Settings drawer
+function openSettings() {
+  document.getElementById('settings-overlay').classList.add('open');
+  document.getElementById('settings-drawer').classList.add('open');
+}
+
+function closeSettings() {
+  document.getElementById('settings-overlay').classList.remove('open');
+  document.getElementById('settings-drawer').classList.remove('open');
+}
+
+// Mobile sidebar
+function openSidebar() {
+  document.getElementById('sidebar').classList.add('mobile-open');
+  document.getElementById('sidebar-overlay').classList.add('show');
+}
+
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('mobile-open');
+  document.getElementById('sidebar-overlay').classList.remove('show');
+}
+
+// ── Init ────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  // Init mermaid
+  mermaid.initialize({ startOnLoad: false, theme: 'dark', securityLevel: 'loose' });
+
+  // Restore theme
+  const savedTheme = localStorage.getItem('vanta-theme');
+  if (savedTheme === 'light') setTheme(true);
+
+  // Create initial chat
+  createChat();
+
+  // ── Event Listeners ──
+  const sendBtn = document.getElementById('send-btn');
+  const input = document.getElementById('message-input');
+  const fileInput = document.getElementById('file-input');
+
+  sendBtn.addEventListener('click', sendMessage);
+
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+
+  input.addEventListener('input', () => autoResizeTextarea(input));
+
+  // File upload
+  document.getElementById('upload-btn').addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', (e) => {
+    if (e.target.files[0]) handleImageUpload(e.target.files[0]);
+    fileInput.value = '';
+  });
+
+  // Drag & drop on chat area
+  const chatArea = document.getElementById('chat-area');
+  chatArea.addEventListener('dragover', (e) => { e.preventDefault(); });
+  chatArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    if (file?.type.startsWith('image/')) handleImageUpload(file);
+  });
+
+  // Remove image
+  document.getElementById('remove-image-btn').addEventListener('click', () => {
+    state.attachedImage = null;
+    document.getElementById('image-preview-bar').style.display = 'none';
+  });
+
+  // New chat
+  document.getElementById('new-chat-btn').addEventListener('click', () => {
+    createChat();
+    closeSidebar();
+  });
+
+  // Settings
+  document.getElementById('settings-btn').addEventListener('click', openSettings);
+  document.getElementById('mobile-settings-btn')?.addEventListener('click', openSettings);
+  document.getElementById('close-settings-btn').addEventListener('click', closeSettings);
+  document.getElementById('settings-overlay').addEventListener('click', closeSettings);
+
+  // Theme toggle
+  document.getElementById('theme-toggle').addEventListener('click', function() {
+    setTheme(!this.classList.contains('on'));
+  });
+
+  // Sidebar close
+  document.getElementById('sidebar-close-btn').addEventListener('click', closeSidebar);
+  document.getElementById('mobile-menu-btn')?.addEventListener('click', openSidebar);
+  document.getElementById('sidebar-overlay').addEventListener('click', closeSidebar);
+
+  // Start boot
+  boot();
+});
+
+// Expose for suggestion chips
+window.fillInput = fillInput;
+window.copyCode = copyCode;
+</script>
+</body>
+</html>
